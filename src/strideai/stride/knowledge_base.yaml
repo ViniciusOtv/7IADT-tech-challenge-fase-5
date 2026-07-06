@@ -1,0 +1,184 @@
+user:
+  threats:
+    - category: Spoofing
+      description: "Um atacante pode se passar por um usuário legítimo usando credenciais roubadas ou sessões sequestradas."
+      severity: high
+      countermeasures: ["Autenticação multifator (MFA)", "Políticas de senha forte", "Expiração e rotação de sessões"]
+    - category: Repudiation
+      description: "Usuários podem negar ações realizadas no sistema se não houver trilha de auditoria."
+      severity: medium
+      countermeasures: ["Registro de auditoria de ações do usuário", "Logs com carimbo de tempo e identidade"]
+
+web_client:
+  threats:
+    - category: Tampering
+      description: "O código executado no cliente pode ser manipulado (ex.: XSS, alteração de requisições)."
+      severity: high
+      countermeasures: ["Content Security Policy (CSP)", "Codificação de saída e validação de entrada", "Nunca confiar em validação apenas no cliente"]
+    - category: Information Disclosure
+      description: "Dados sensíveis podem vazar por armazenamento local, cache do navegador ou tráfego não criptografado."
+      severity: medium
+      countermeasures: ["TLS em todas as conexões", "Não armazenar segredos no cliente", "Cabeçalhos Cache-Control para dados sensíveis"]
+
+api_gateway:
+  threats:
+    - category: Spoofing
+      description: "Requisições com tokens forjados ou ausentes podem tentar acessar APIs internas."
+      severity: high
+      countermeasures: ["Validação de tokens OAuth2/JWT no gateway", "mTLS entre gateway e serviços internos"]
+    - category: Denial of Service
+      description: "O gateway é ponto único de entrada e alvo natural de ataques volumétricos."
+      severity: high
+      countermeasures: ["Rate limiting e throttling por cliente", "Quotas e circuit breakers", "WAF na frente do gateway"]
+    - category: Elevation of Privilege
+      description: "Rotas mal configuradas podem expor operações administrativas a usuários comuns."
+      severity: medium
+      countermeasures: ["Autorização por rota/escopo", "Negar por padrão (deny-by-default)"]
+
+load_balancer:
+  threats:
+    - category: Denial of Service
+      description: "Ataques volumétricos (SYN flood, HTTP flood) podem esgotar conexões do balanceador."
+      severity: high
+      countermeasures: ["Proteção anti-DDoS (ex.: AWS Shield, Azure DDoS Protection)", "Auto scaling do pool de backends", "Timeouts e limites de conexão"]
+    - category: Tampering
+      description: "Configuração insegura de terminação TLS pode permitir downgrade ou interceptação."
+      severity: medium
+      countermeasures: ["TLS 1.2+ com cifras modernas", "Redirecionamento HTTP→HTTPS", "Gestão auditada de certificados"]
+
+app_server:
+  threats:
+    - category: Tampering
+      description: "Entradas maliciosas podem alterar o comportamento da aplicação (injeção, desserialização insegura)."
+      severity: high
+      countermeasures: ["Validação e sanitização de entrada no servidor", "Dependências atualizadas e verificadas", "Revisão de código e SAST"]
+    - category: Elevation of Privilege
+      description: "Vulnerabilidades no servidor podem permitir execução de código com privilégios elevados."
+      severity: high
+      countermeasures: ["Princípio do menor privilégio para o processo", "Patching regular do SO e runtime", "Contêineres sem root"]
+    - category: Repudiation
+      description: "Sem logs centralizados, ações executadas no servidor não podem ser atribuídas."
+      severity: medium
+      countermeasures: ["Logging estruturado centralizado", "Correlação de requisições (trace IDs)"]
+
+database:
+  threats:
+    - category: Tampering
+      description: "Dados podem ser modificados sem autorização via injeção de SQL ou acesso direto."
+      severity: high
+      countermeasures: ["Consultas parametrizadas / ORM", "Contas de banco com menor privilégio", "Segregação de rede (subnet privada)"]
+    - category: Information Disclosure
+      description: "Vazamento de dados sensíveis por acesso indevido, backups expostos ou tráfego não criptografado."
+      severity: high
+      countermeasures: ["Criptografia em repouso e em trânsito", "Mascaramento de dados sensíveis", "Backups criptografados com acesso restrito"]
+    - category: Repudiation
+      description: "Alterações em dados críticos sem trilha de auditoria impedem atribuição."
+      severity: medium
+      countermeasures: ["Auditoria nativa do SGBD habilitada", "Logs de acesso retidos e protegidos"]
+
+cache:
+  threats:
+    - category: Information Disclosure
+      description: "Caches (ex.: Redis, Memcached) frequentemente ficam sem autenticação e podem expor dados sensíveis."
+      severity: high
+      countermeasures: ["Habilitar autenticação (AUTH/ACL)", "Não armazenar dados sensíveis sem criptografia", "Isolamento de rede do cache"]
+    - category: Denial of Service
+      description: "Envenenamento ou estouro do cache pode degradar o serviço e sobrecarregar o backend."
+      severity: medium
+      countermeasures: ["Limites de memória e políticas de evicção", "TTL adequado nas chaves"]
+
+queue:
+  threats:
+    - category: Tampering
+      description: "Mensagens podem ser alteradas ou injetadas por produtores não autorizados."
+      severity: medium
+      countermeasures: ["Autenticação de produtores e consumidores", "Assinatura/validação de mensagens", "TLS no transporte"]
+    - category: Denial of Service
+      description: "Inundação de mensagens ou mensagens venenosas podem travar consumidores."
+      severity: medium
+      countermeasures: ["Dead-letter queues (DLQ)", "Quotas e limites de tamanho de mensagem"]
+
+storage:
+  threats:
+    - category: Information Disclosure
+      description: "Buckets/volumes mal configurados são causa comum de vazamento massivo de dados."
+      severity: high
+      countermeasures: ["Bloqueio de acesso público por padrão", "Políticas de acesso por identidade (IAM)", "Criptografia em repouso"]
+    - category: Tampering
+      description: "Objetos podem ser sobrescritos ou apagados sem controle de integridade."
+      severity: medium
+      countermeasures: ["Versionamento de objetos", "Object lock / imutabilidade para dados críticos"]
+
+function_serverless:
+  threats:
+    - category: Elevation of Privilege
+      description: "Funções com papéis IAM excessivamente amplos ampliam o impacto de um comprometimento."
+      severity: high
+      countermeasures: ["Um papel IAM mínimo por função", "Revisão periódica de permissões"]
+    - category: Information Disclosure
+      description: "Segredos em variáveis de ambiente em texto claro podem vazar em logs e dumps."
+      severity: medium
+      countermeasures: ["Gerenciador de segredos (Secrets Manager/Key Vault)", "Não logar payloads sensíveis"]
+
+firewall_waf:
+  threats:
+    - category: Tampering
+      description: "Regras desatualizadas ou alteradas indevidamente reduzem a proteção do perímetro."
+      severity: medium
+      countermeasures: ["Conjuntos de regras gerenciadas atualizados", "Mudanças de regra auditadas e versionadas"]
+    - category: Denial of Service
+      description: "O próprio WAF pode ser alvo; sem regras de taxa, ataques passam ao backend."
+      severity: medium
+      countermeasures: ["Regras de rate limiting no WAF", "Monitoramento de métricas de bloqueio"]
+
+auth_service:
+  threats:
+    - category: Spoofing
+      description: "O serviço de identidade é alvo prioritário: credential stuffing, phishing e tokens forjados."
+      severity: high
+      countermeasures: ["MFA obrigatório", "Detecção de credential stuffing e bloqueio progressivo", "Assinatura e expiração curtas de tokens"]
+    - category: Information Disclosure
+      description: "Vazamento da base de credenciais compromete todos os sistemas dependentes."
+      severity: high
+      countermeasures: ["Hashing de senhas com bcrypt/argon2", "Segregação e criptografia da base de identidade"]
+    - category: Repudiation
+      description: "Sem logs de autenticação, acessos indevidos não podem ser investigados."
+      severity: medium
+      countermeasures: ["Log de todas as tentativas de login (sucesso e falha)", "Alertas de anomalia de acesso"]
+
+cdn:
+  threats:
+    - category: Information Disclosure
+      description: "Conteúdo sensível pode ser cacheado e servido a usuários não autorizados."
+      severity: medium
+      countermeasures: ["Signed URLs/cookies para conteúdo restrito", "Cache-Control adequado para dados privados"]
+    - category: Tampering
+      description: "Conteúdo pode ser adulterado entre origem e CDN se o tráfego não for protegido."
+      severity: medium
+      countermeasures: ["TLS entre origem e CDN", "Subresource Integrity (SRI) para assets"]
+
+monitoring:
+  threats:
+    - category: Information Disclosure
+      description: "Logs e métricas frequentemente contêm dados sensíveis (tokens, PII) acessíveis à equipe inteira."
+      severity: medium
+      countermeasures: ["Mascaramento/redação de dados sensíveis nos logs", "Controle de acesso ao sistema de observabilidade"]
+    - category: Tampering
+      description: "Um atacante pode apagar ou alterar logs para encobrir atividade."
+      severity: medium
+      countermeasures: ["Logs imutáveis/WORM ou replicados para conta separada", "Integridade verificável (hash encadeado)"]
+
+external_service:
+  threats:
+    - category: Spoofing
+      description: "Um serviço externo pode ser personificado se a identidade do endpoint não for validada."
+      severity: high
+      countermeasures: ["Validação estrita de certificados / mTLS", "Fixação de endpoints confiáveis"]
+    - category: Information Disclosure
+      description: "Dados enviados a terceiros saem da fronteira de confiança da organização."
+      severity: high
+      countermeasures: ["Minimizar dados compartilhados", "Contratos de tratamento de dados (DPA)", "Criptografia fim a fim quando possível"]
+    - category: Tampering
+      description: "Respostas de terceiros podem ser maliciosas ou malformadas."
+      severity: medium
+      countermeasures: ["Validação de esquema das respostas", "Timeouts e isolamento de falhas (circuit breaker)"]
