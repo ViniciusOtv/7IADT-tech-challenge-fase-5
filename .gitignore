@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+dataset/synthetic/
+dataset/external/
+dataset/final/
+models/*.pt
+runs/
+.env
