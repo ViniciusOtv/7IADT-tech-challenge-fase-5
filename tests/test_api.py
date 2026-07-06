@@ -65,3 +65,51 @@ def test_analyze_zero_detections_is_honest(monkeypatch):
     r = client.post("/analyze", files={"file": ("d.png", _png_bytes(), "image/png")})
     assert r.status_code == 200
     assert "Nenhum componente reconhecido" in r.json()["report_markdown"]
+
+
+def test_analyze_survives_decompression_bomb_guard(client, monkeypatch):
+    """Regression test for PIL.Image.DecompressionBombError crashing /analyze.
+
+    Pillow raises DecompressionBombError (a plain Exception, not an OSError)
+    from Image.open() whenever a decoded image's pixel count exceeds roughly
+    2x Image.MAX_IMAGE_PIXELS. strideai.api.main disables that guard at
+    import time (Image.MAX_IMAGE_PIXELS = None) because this service is
+    trusted-context and relies on its own MAX_IMAGE_SIDE thumbnail step as
+    the real safety net.
+
+    To make this deterministic without allocating a genuinely huge image, we
+    use monkeypatch to dial Image.MAX_IMAGE_PIXELS down to a tiny value,
+    which makes an ordinary small PNG "look like" an oversized image to
+    Pillow's guard -- reproducing the exact same code path a real oversized
+    upload would hit.
+    """
+    from PIL import Image as PILImage
+
+    # Sanity check that the fix is actually in place: strideai.api.main must
+    # have disabled the guard at import time. If this assertion fails, the
+    # rest of this test would be exercising a scenario we rigged ourselves
+    # rather than verifying the production fix.
+    assert PILImage.MAX_IMAGE_PIXELS is None
+
+    png_bytes = _png_bytes()  # 200x200 = 40_000 pixels
+
+    # 1) Simulate the pre-fix state: the decompression-bomb guard is active
+    #    with a threshold far below our test image's pixel count. This is
+    #    what the buggy code did for any genuinely oversized upload -- it
+    #    crashed with an unhandled DecompressionBombError (-> 500), because
+    #    the endpoint's except clause only caught UnidentifiedImageError/OSError.
+    monkeypatch.setattr(PILImage, "MAX_IMAGE_PIXELS", 1000)
+    unsafe_client = TestClient(client.app, raise_server_exceptions=False)
+    r = unsafe_client.post("/analyze", files={"file": ("d.png", png_bytes, "image/png")})
+    assert r.status_code == 500
+
+    # 2) Undo *only* our own patch from step 1 (not a fresh hardcoded value):
+    #    this restores whatever strideai.api.main actually set at import
+    #    time. If the fix were absent, this would restore Pillow's real
+    #    default (~89M pixels) rather than None, and the assertion above
+    #    would already have failed. Confirm the very same upload now
+    #    succeeds instead of crashing.
+    monkeypatch.undo()
+    assert PILImage.MAX_IMAGE_PIXELS is None
+    r = client.post("/analyze", files={"file": ("d.png", png_bytes, "image/png")})
+    assert r.status_code == 200

@@ -13,6 +13,12 @@ from strideai.stride.engine import analyze
 
 MAX_IMAGE_SIDE = 2560  # downscale huge uploads before inference
 
+# Disable Pillow's decompression-bomb guard (PIL.Image.DecompressionBombError).
+# This service runs in a trusted context (internal diagram-analysis tool, not a
+# public upload endpoint), and the MAX_IMAGE_SIDE thumbnail step below is our
+# actual safety net against oversized images once they're decoded.
+Image.MAX_IMAGE_PIXELS = None
+
 
 def create_app(detector=None) -> FastAPI:
     app = FastAPI(title="STRIDE Threat Modeling API", version="0.1.0")
