@@ -1,0 +1,38 @@
+# Relatório de Modelagem de Ameaças (STRIDE)
+
+{% if not tm.components -%}
+**Nenhum componente reconhecido no diagrama enviado.**
+
+O modelo de detecção não identificou componentes de arquitetura com confiança suficiente.
+Verifique se a imagem é um diagrama de arquitetura de software legível e tente novamente.
+{%- else -%}
+## Resumo
+
+Foram identificados **{{ tm.components | length }}** tipos de componentes na arquitetura,
+totalizando **{{ tm.components | sum(attribute='instance_count') }}** instâncias.
+
+{% if tm.architecture_warnings %}
+## Avisos de Arquitetura
+
+{% for w in tm.architecture_warnings -%}
+- ⚠️ {{ w }}
+{% endfor %}
+{% endif %}
+
+## Ameaças por Componente
+
+{% for c in tm.components %}
+### {{ c.component_type }} — {{ c.instance_count }} instância(s)
+
+{% for t in c.threats -%}
+**{{ t.category.value }}** (severidade: {{ t.severity.value }})
+
+{{ t.description }}
+
+Contramedidas:
+{% for m in t.countermeasures -%}
+- {{ m }}
+{% endfor %}
+{% endfor %}
+{%- endfor %}
+{%- endif %}
