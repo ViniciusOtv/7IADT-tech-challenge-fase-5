@@ -35,8 +35,8 @@ def _get_client() -> anthropic.Anthropic:
 
 def write_report(tm: ThreatModel) -> str:
     model = os.environ.get("STRIDEAI_LLM_MODEL", DEFAULT_MODEL)
-    payload = tm.model_dump_json(indent=2)
     try:
+        payload = tm.model_dump_json(indent=2)
         response = _get_client().messages.create(
             model=model,
             max_tokens=8000,
