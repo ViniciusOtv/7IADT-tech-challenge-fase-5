@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      - api

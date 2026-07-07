@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e .[dev]
+      - run: ruff check src tests dataset training scripts app
+      - run: python -m pytest -v   # integration tests are excluded by pyproject addopts
+
+  smoke:
+    # spec Sec 10: full-pipeline smoke test on the PDF evaluation figures,
+    # with weights pulled from the GitHub release. Runs only once the
+    # repository variable WEIGHTS_URL is configured (after the first training).
+    runs-on: ubuntu-latest
+    if: vars.WEIGHTS_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e .[dev]
+      - run: python scripts/download_weights.py --url "${{ vars.WEIGHTS_URL }}"
+      - run: python scripts/extract_eval_figures.py
+      - run: python -m pytest -m integration -v

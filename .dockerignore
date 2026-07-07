@@ -1,0 +1,8 @@
+.venv
+.git
+runs
+dataset/synthetic
+dataset/external
+dataset/final
+__pycache__
+*.egg-info

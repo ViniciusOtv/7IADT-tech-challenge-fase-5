@@ -72,9 +72,6 @@ def test_multiple_threats_separated_by_blank_lines():
     assert tampering_idx != -1, "Second threat not found"
     assert spoofing_idx < tampering_idx, "Threats not in order"
 
-    # Extract text between the two threat headers
-    between_threats = md[spoofing_idx:tampering_idx]
-
     # Verify there's a blank line (two consecutive newlines) before the second threat
     # This should exist after the countermeasures of the first threat
     assert "\n\n**Tampering**" in md, "No blank line between threat blocks"
