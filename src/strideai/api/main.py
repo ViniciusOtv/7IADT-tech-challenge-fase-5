@@ -28,7 +28,7 @@ def create_app(detector=None) -> FastAPI:
         conf_threshold: float = Form(0.4),
     ):
         if app.state.detector is None:
-            raise HTTPException(status_code=503, detail="detector not loaded")
+            raise HTTPException(status_code=503, detail="modelo de detecção não carregado")
         try:
             image = Image.open(io.BytesIO(file.file.read()))
             image.load()

@@ -55,3 +55,27 @@ def test_cli_builds_split_structure(tmp_path):
     data = yaml.safe_load((out / "data.yaml").read_text())
     assert data["names"] == COMPONENT_CLASSES
     assert data["nc"] == 15
+
+
+def test_cli_missing_label_file_fails_clearly(tmp_path):
+    synthetic = tmp_path / "synthetic"
+    real = tmp_path / "external"
+    out = tmp_path / "final"
+    _mk_yolo_dir(synthetic, ["s1", "s2"], "5 0.5 0.5 0.2 0.2")
+    _mk_yolo_dir(real, ["r1", "r2", "r3", "r4"], "0 0.5 0.5 0.2 0.2")
+    (real / "mapping.yaml").write_text("0: database\n", encoding="utf-8")
+
+    # Simulate a Roboflow-style background/negative image with no matching label file.
+    Image.new("RGB", (64, 64), "white").save(real / "images" / "r5.jpg")
+
+    script = Path(__file__).resolve().parents[1] / "dataset" / "build_dataset.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--synthetic", str(synthetic),
+         "--real", str(real), "--out", str(out)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "missing label file for image 'r5'" in result.stderr
+    assert "Traceback" not in result.stderr

@@ -29,6 +29,12 @@ def _copy_pairs(src: Path, dst: Path, stems: list[str], mapping: dict[int, str] 
         image = next((src / "images").glob(f"{stem}.*"))
         shutil.copy2(image, dst / "images" / image.name)
         label_file = src / "labels" / f"{stem}.txt"
+        if not label_file.exists():
+            raise SystemExit(
+                f"missing label file for image '{stem}' (expected {label_file}) — "
+                f"every image must have a matching .txt label; if this is meant to be "
+                f"a background/negative image, create an empty {label_file.name}"
+            )
         lines = label_file.read_text(encoding="utf-8").splitlines()
         if mapping is not None:
             lines = [remapped for line in lines if (remapped := remap_label_line(line, mapping))]
