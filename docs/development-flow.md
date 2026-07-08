@@ -115,24 +115,32 @@ equipe:**
    por composição direta com PIL em vez da biblioteca `diagrams` porque esta
    última renderiza via Graphviz e não expõe as coordenadas dos ícones
    depois de desenhados, o que inviabilizaria anotações automáticas.
-2. **Datasets públicos:** conjuntos de diagramas de arquitetura e ícones de
-   nuvem do Roboflow Universe, importados e remapeados para a taxonomia de
-   15 classes via o arquivo `mapping.yaml` que `dataset/build_dataset.py`
-   espera em `dataset/external/`.
-3. **Diagramas reais (~50–100 imagens):** coletados de documentação de
-   arquiteturas de referência AWS/Azure e anotados manualmente pela equipe
-   no Roboflow (plano gratuito, exportação em formato YOLO), garantindo que
-   o modelo veja o estilo visual real que será usado na avaliação.
+2. **Datasets públicos (opcional):** conjuntos de diagramas de arquitetura e
+   ícones de nuvem do Roboflow Universe, importados e remapeados para a
+   taxonomia de 15 classes via o arquivo `mapping.yaml` que
+   `dataset/build_dataset.py` espera em `dataset/external/`.
+3. **Diagramas reais (opcional, ~50–100 imagens):** coletados de
+   documentação de arquiteturas de referência AWS/Azure e anotados
+   manualmente pela equipe no Roboflow (plano gratuito, exportação em
+   formato YOLO), garantindo que o modelo veja o estilo visual real que será
+   usado na avaliação.
 
 **Fusão e política de split (`dataset/build_dataset.py`):** as imagens
 sintéticas vão inteiramente para o split de treino; as imagens reais
-anotadas manualmente são divididas 50/50 entre validação e teste. Essa
-escolha é deliberada: como a avaliação do desafio usa diagramas reais
+anotadas manualmente (fontes 2 e 3, ambas opcionais — ver
+`dataset/external/README.md`) são divididas 50/50 entre validação e teste.
+Essa escolha é deliberada: como a avaliação do desafio usa diagramas reais
 ("de livro-texto"), as métricas de val/test precisam refletir esse estilo de
 imagem, não o estilo sintético/gerado — caso contrário, o mAP reportado
 mediria principalmente o quão bem o modelo reconhece os próprios diagramas
-que ele foi treinado a produzir, não a generalização que o desafio exige. O
-script também escreve o `data.yaml` consumido pelo Ultralytics (caminhos dos
+que ele foi treinado a produzir, não a generalização que o desafio exige.
+Como diagramas reais anotados à mão são opcionais e dão trabalho, o script
+não bloqueia sem eles: se `dataset/external/` estiver ausente ou vazia,
+val/test são extraídos do próprio dataset sintético (10%/10%) para o
+pipeline de treino/avaliação rodar de ponta a ponta desde já — só que,
+nesse caso, as métricas reportadas são otimistas (o modelo é avaliado em
+diagramas do mesmo estilo em que treinou) até que diagramas reais sejam
+adicionados. O script também escreve o `data.yaml` consumido pelo Ultralytics (caminhos dos
 três splits, número de classes e seus nomes, na ordem canônica).
 
 **Contagens finais do dataset:** _(preencher após o treinamento — número de

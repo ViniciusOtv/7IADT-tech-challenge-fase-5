@@ -8,7 +8,8 @@ dist/
 build/
 *.egg-info/
 dataset/synthetic/
-dataset/external/
+dataset/external/*
+!dataset/external/README.md
 dataset/final/
 models/*.pt
 runs/
