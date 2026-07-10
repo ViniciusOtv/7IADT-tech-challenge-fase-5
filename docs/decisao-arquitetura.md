@@ -1,6 +1,5 @@
 # Decisão de Arquitetura: Modelagem de Ameaças STRIDE com IA a partir de Diagramas de Arquitetura
 
-**Data:** 2026-07-06
 **Contexto:** FIAP Pós Tech — Hackathon da Fase 5 ("Modelagem de ameaças utilizando IA")
 **Requisitos de origem:** `doc/IADT - Fase 5 - Hackaton.pdf`
 
@@ -13,11 +12,6 @@ Construir um MVP que recebe **um diagrama de arquitetura de software como imagem
 3. Um **relatório de modelagem de ameaças STRIDE** gerado.
 
 A avaliação usará diagramas de referência de nuvem reais, semelhantes às duas figuras do PDF (uma arquitetura AWS multi-AZ e uma arquitetura Azure API Management). Entregáveis: documentação do fluxo de desenvolvimento, um vídeo (≤15 min) e um repositório público no GitHub.
-
-**Restrições estabelecidas:**
-- 2–4 semanas, projeto em equipe (o trabalho pode ser paralelizado).
-- Uso de API de LLM paga é aceitável.
-- Interface: UI web em Streamlit apoiada por um serviço FastAPI.
 
 ## 2. Abordagem Escolhida
 
@@ -74,7 +68,7 @@ tech-challenge-fase-5/
 
 ## 6. Motor STRIDE
 
-`src/stride/knowledge_base.yaml`: uma entrada por classe canônica listando as categorias STRIDE aplicáveis, cada uma com descrição da ameaça, severidade (alta/média/baixa) e contramedidas concretas citando fontes reconhecidas (OWASP ASVS/cheat sheets, boas práticas de segurança dos provedores de nuvem).
+`src/strideai/stride/knowledge_base.yaml`: uma entrada por classe canônica listando as categorias STRIDE aplicáveis, cada uma com descrição da ameaça, severidade (alta/média/baixa) e contramedidas concretas citando fontes reconhecidas (OWASP ASVS/cheat sheets, boas práticas de segurança dos provedores de nuvem).
 
 Motor: função pura em Python `analyze(components) -> ThreatModel`.
 - Deduplica tipos de componente repetidos (três load balancers → uma seção `load_balancer` indicando 3 instâncias).
@@ -85,7 +79,7 @@ Motor: função pura em Python `analyze(components) -> ThreatModel`.
 
 - **Caminho via LLM:** a API da Anthropic (um modelo econômico, classe Haiku, é suficiente) recebe o JSON estruturado do ThreatModel e escreve o relatório **em português**: sumário executivo, tabela de componentes detectados, seções STRIDE por componente, contramedidas priorizadas. O prompt restringe o modelo a apenas organizar/reformular as ameaças fornecidas — ele não pode inventar componentes ou ameaças.
 - **Caminho alternativo (fallback):** se a chave de API estiver ausente ou a chamada falhar, um template Jinja2 renderiza a mesma estrutura como Markdown puro. O sistema sempre produz um relatório.
-- **Saída:** Markdown sempre; exportação em PDF é uma meta secundária (stretch goal).
+- **Saída:** Markdown sempre.
 
 ## 8. API e UI
 
