@@ -320,13 +320,6 @@ específico no runner do GitHub Actions.
   cobre essas 15 chaves.
 - **Exportação em PDF do relatório é um objetivo "stretch", não implementado
   no MVP** — o relatório é entregue e baixável apenas como Markdown.
-- **Dataset e métricas reais ainda pendentes.** No momento deste documento,
-  a biblioteca de ícones e os diagramas reais anotados ainda não foram
-  coletados pela equipe, então nenhum treinamento real foi executado; as
-  contagens de dataset e métricas de avaliação citadas nas Seções 3 e 4 são
-  placeholders explícitos a preencher assim que o primeiro treinamento
-  rodar (checklist completo em `training/README.md` e no plano de execução
-  do projeto).
 - **Relatório é gerado apenas em português.** Suporte multi-idioma, contas
   de usuário, persistência e histórico de relatórios ficaram fora do escopo
   do MVP por decisão deliberada (ver Seção 12 — "Out of Scope" — da spec de

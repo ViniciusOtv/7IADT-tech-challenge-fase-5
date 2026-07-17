@@ -77,6 +77,90 @@ Colab.
     bloco `Validating .../weights/best.pt...` referente ao split de teste. Veja
     `## Registro de execuções` abaixo.
 
+## Diagramas reais (dataset/external/)
+
+Sem diagramas reais anotados, `dataset/build_dataset.py` tira val/test de uma fatia
+do próprio dataset sintético — as métricas resultantes são otimistas, pois o modelo é
+avaliado em imagens parecidas com as de treino. Popular `dataset/external/` substitui
+essa fatia por diagramas reais no estilo usado pela avaliação do desafio.
+
+1. Colecione entre 50 e 100 imagens de diagramas de arquitetura reais (não gerados
+   pelo projeto), no mesmo estilo das figuras de avaliação do PDF do desafio —
+   AWS Architecture Center, Azure Architecture Center ou documentação técnica
+   equivalente. Salve como `.png`/`.jpg`.
+
+2. Crie uma conta gratuita em https://roboflow.com e um novo projeto do tipo
+   **Object Detection**. Cadastre as 15 classes com os mesmos nomes da taxonomia
+   canônica (evita a necessidade de `mapping.yaml` mais adiante):
+
+       user, web_client, api_gateway, load_balancer, app_server, database, cache,
+       queue, storage, function_serverless, firewall_waf, auth_service, cdn,
+       monitoring, external_service
+
+3. Envie as imagens coletadas (`Upload Data`).
+
+4. Anote cada imagem na fila `Unannotated`: ferramenta de caixa (tecla `B`), arraste
+   uma caixa justa ao redor de cada ícone reconhecível como uma das 15 classes,
+   selecione a classe no `Class Selector` e confirme com `Enter`. Ícones que não se
+   encaixam em nenhuma das 15 classes ficam sem caixa — mas todo ícone que se encaixa
+   deve ser anotado; anotação parcial de uma imagem introduz ruído no treino (melhor
+   excluir a imagem inteira do que deixá-la parcialmente anotada).
+
+5. Gere e exporte uma versão do dataset (`Generate` → `Export Dataset`) no formato
+   **YOLOv11** (ou equivalente, com rótulos `.txt`).
+
+6. Descompacte a exportação e una as subpastas `train/`, `valid/` e `test/` do
+   Roboflow em uma única pasta plana, no formato esperado por
+   `dataset/build_dataset.py` (`dataset/external/images/*.jpg` e
+   `dataset/external/labels/*.txt`):
+
+       mkdir dataset\external\images
+       mkdir dataset\external\labels
+       copy <zip_extraido>\train\images\* dataset\external\images\
+       copy <zip_extraido>\valid\images\* dataset\external\images\
+       copy <zip_extraido>\test\images\*  dataset\external\images\
+       copy <zip_extraido>\train\labels\* dataset\external\labels\
+       copy <zip_extraido>\valid\labels\* dataset\external\labels\
+       copy <zip_extraido>\test\labels\*  dataset\external\labels\
+
+   Se os nomes/índices de classe exportados não coincidirem com a taxonomia
+   canônica, adicione `dataset/external/mapping.yaml` (ver exemplo nesse mesmo
+   arquivo README).
+
+7. Reconstrua o dataset final e confirme que val/test passaram a usar as imagens
+   reais:
+
+       python dataset/build_dataset.py
+       ls dataset/final/val/images
+
+   O aviso `warning: no real diagrams found` não deve mais aparecer.
+
+8. Para treinar no Colab, `dataset/external/` não é versionado no Git (está no
+   `.gitignore`) e não vem junto do `git clone`. Compacte a pasta localmente e
+   suba para o Google Drive:
+
+       Compress-Archive -Path dataset\external -DestinationPath external.zip
+
+   No notebook, após clonar o repositório e instalar o projeto (passos 2-3 da
+   seção "Google Colab" acima), monte o Drive e descompacte antes de gerar o
+   dataset:
+
+       from google.colab import drive
+       drive.mount('/content/drive')
+       !unzip -q "/content/drive/MyDrive/external.zip" -d /content/7IADT-tech-challenge-fase-5/dataset
+
+9. Prossiga com os passos 4 a 9 da seção "Google Colab" (gerar sintético, fundir,
+   conferir GPU, treinar, salvar `best.pt` e `confusion_matrix.png`).
+
+10. Registre a nova execução em `training/RESULTS.md` como uma linha adicional (sem
+    sobrescrever o histórico anterior), anotando na observação que essa execução usa
+    diagramas reais anotados manualmente. Um `mAP50 (test)` mais baixo que o obtido
+    apenas com dataset sintético é esperado e reflete uma medição mais honesta de
+    generalização. Em seguida, confirme o critério de aceite do desafio:
+
+        python scripts/extract_eval_figures.py
+        python -m pytest -m integration -v
+
 ## Registro de execuções
 Registre cada execução em `training/RESULTS.md`: data, dataset (contagens por split),
 hiperparâmetros, mAP50 geral e por classe, matriz de confusão (`training/confusion_matrix.png`),
