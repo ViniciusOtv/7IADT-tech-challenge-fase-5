@@ -109,10 +109,14 @@ essa fatia por diagramas reais no estilo usado pela avaliação do desafio.
 5. Gere e exporte uma versão do dataset (`Generate` → `Export Dataset`) no formato
    **YOLOv11** (ou equivalente, com rótulos `.txt`).
 
-6. Descompacte a exportação e una as subpastas `train/`, `valid/` e `test/` do
-   Roboflow em uma única pasta plana, no formato esperado por
-   `dataset/build_dataset.py` (`dataset/external/images/*.jpg` e
-   `dataset/external/labels/*.txt`):
+6. Descompacte a exportação e una as subpastas do Roboflow em uma única pasta
+   plana, no formato esperado por `dataset/build_dataset.py`
+   (`dataset/external/images/*.jpg` e `dataset/external/labels/*.txt`). O
+   Roboflow só cria as subpastas `train/`, `valid/` e `test/` que efetivamente
+   receberam imagens na divisão configurada no passo `Generate` — com poucas
+   imagens ou split 100% treino, a exportação pode conter apenas `train/`.
+   Verifique antes com `dir <zip_extraido>` e copie apenas as pastas que
+   existirem:
 
        mkdir dataset\external\images
        mkdir dataset\external\labels
@@ -122,6 +126,10 @@ essa fatia por diagramas reais no estilo usado pela avaliação do desafio.
        copy <zip_extraido>\train\labels\* dataset\external\labels\
        copy <zip_extraido>\valid\labels\* dataset\external\labels\
        copy <zip_extraido>\test\labels\*  dataset\external\labels\
+
+   `dataset/build_dataset.py` não depende da divisão feita pelo Roboflow: trata
+   tudo em `dataset/external/images` como um único conjunto e faz sua própria
+   divisão 50/50 entre val/test — não há problema em exportar só com `train/`.
 
    Se os nomes/índices de classe exportados não coincidirem com a taxonomia
    canônica, adicione `dataset/external/mapping.yaml` (ver exemplo nesse mesmo

@@ -88,6 +88,9 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=Path("dataset/final"))
     args = parser.parse_args()
 
+    if args.out.exists():
+        shutil.rmtree(args.out)
+
     synthetic_stems = _stems(args.synthetic)
     real_stems = _real_stems(args.real)
 
